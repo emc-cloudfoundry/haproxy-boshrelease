@@ -1,0 +1,10 @@
+---
+name: keepalived
+files:
+- keepalived/iproute_1%3a3.12.0-2_all.deb
+- keepalived/ipvsadm_1%3a1.26-2ubuntu1_amd64.deb
+- keepalived/keepalived_1%3a1.2.7-1ubuntu1_amd64.deb
+- keepalived/libperl5.18_5.18.2-2ubuntu1_amd64.deb
+- keepalived/libsnmp30_5.7.2~dfsg-8.1ubuntu3_amd64.deb
+- keepalived/libsnmp-base_5.7.2~dfsg-8.1ubuntu3_all.deb
+

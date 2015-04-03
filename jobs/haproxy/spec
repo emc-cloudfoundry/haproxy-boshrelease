@@ -1,0 +1,36 @@
+---
+name: haproxy
+packages: 
+- keepalived
+- haproxy
+ 
+templates:
+  bin/keepalived_ctl.erb : bin/keepalived_ctl
+  bin/haproxy_ctl.erb : bin/haproxy_ctl
+  bin/monit_debugger : bin/monit_debugger
+  bin/keepalived_setup.sh.erb : bin/keepalived_setup.sh
+  bin/haproxy_setup.sh.erb : bin/haproxy_setup.sh
+  data/properties.sh.erb : data/properties.sh
+  helpers/ctl_setup.sh : helpers/ctl_setup.sh
+  helpers/ctl_utils.sh : helpers/ctl_utils.sh
+  config/keepalived.conf.erb : config/keepalived.conf
+  config/haproxy.cfg.erb : config/haproxy.cfg
+
+properties:
+  keepalived.virtual_router_id:
+    description: "VRRP instance router id"
+  keepalived.master_priority:
+    description: "keepalived vrrp instance priority for master node (job index 0)"
+  keepalived.virtual_ip_address:
+    description: "IP address used by clients to access services"
+
+  haproxy.ip_address:
+    description: "IP address used by clients to access proxied services"
+  haproxy.port:
+    description: "Port number used by clients to access proxied services"
+  haproxy.service_name:
+    description: "Name of service being proxied (e.g. swift_proxy)."
+  haproxy.service_ip_addresses:
+    description: "IP address list of proxied servers"
+  haproxy.service_port:
+    description: "Port number that all proxied servers are listening on"

@@ -1,0 +1,19 @@
+vrrp_script chk_haproxy {
+  script "killall -0 haproxy"
+  interval 2
+  weight 2
+}
+vrrp_instance VI_<%= index %> {
+  virtual_router_id <%= p("keepalived.virtual_router_id") %>
+  advert_int 1
+  priority <%= priority = p("keepalived.master_priority").to_i; if index == 0 then priority; else priority - index; end %>
+  state <%= if index == 0 then "MASTER"; else "BACKUP"; end %>
+  interface eth0
+  virtual_ipaddress {
+    <%= p("keepalived.virtual_ip_address") %> dev eth0
+  }
+  track_script {
+    chk_haproxy
+  }
+}
+

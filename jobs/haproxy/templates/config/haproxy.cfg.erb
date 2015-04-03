@@ -1,0 +1,56 @@
+global
+        chroot /var/lib/haproxy
+        user haproxy
+        group haproxy
+        daemon
+        log /dev/log local0
+        stats socket /var/lib/haproxy/stats
+        maxconn 4000
+
+defaults
+        log global
+        timeout connect 5s
+        timeout client 1m
+        timeout server 1m
+        timeout check 10s
+        errorfile 400 /etc/haproxy/errors/400.http
+        errorfile 403 /etc/haproxy/errors/403.http
+        errorfile 408 /etc/haproxy/errors/408.http
+        errorfile 500 /etc/haproxy/errors/500.http
+        errorfile 502 /etc/haproxy/errors/502.http
+        errorfile 503 /etc/haproxy/errors/503.http
+        errorfile 504 /etc/haproxy/errors/504.http
+
+listen stats <%= spec.networks.default.ip %>:80
+        mode http
+        stats enable
+        stats uri /stats
+        stats realm HAProxy\ Statistics
+        stats auth admin:password
+
+listen <%= p("haproxy.service_name") %>_cluster
+        <% if_p("haproxy.ip_address") do |ip_address|%>
+        bind <%= ip_address %>:<%= p("haproxy.port") %>
+        <% end.else do %>
+        <% if_p("keepalived.virtual_ip_address") do |vip_address|%>
+        bind <%= vip_address %>:<%= p("haproxy.port") %>
+        <% end %>
+        <% end %>
+        mode tcp
+        balance  roundrobin
+        option  tcpka
+        option  tcplog
+        <% p("haproxy.service_ip_addresses", []).each_with_index do |ip_address, index| %>
+        server <%= p("haproxy.service_name") %>_<%= index %> <%= ip_address %>:<%= p("haproxy.service_port") %> check inter 2000 rise 2 fall 5
+        <% end %>
+
+listen rsync_cluster
+        bind <%= p("keepalived.virtual_ip_address") %>:873
+        mode tcp
+        balance  roundrobin
+        option  tcpka
+        option  tcplog
+        <% p("haproxy.service_ip_addresses", []).each_with_index do |ip_address, index| %>
+        server rsync_<%= index %> <%= ip_address %>:873
+        <% end %>
+

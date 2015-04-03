@@ -1,0 +1,35 @@
+#!/bin/bash
+
+log() {
+  echo "$(date) ${*}"
+}
+
+log "${0}: install packages"
+export PKG_LOC=/var/vcap/packages/keepalived
+sudo dpkg -i ${PKG_LOC}/*.deb
+
+log "${0}: make sure keepalived is not running"
+/etc/init.d/keepalived stop
+
+log "${0}: change keepalived defaults to use rsyslog local1 for logging"
+sed -i.bak -e '/DAEMON_ARGS/s/""/"-S 1"/' /etc/default/keepalived
+
+log "${0}: configure rsyslog to send local1 to keepalived log"
+echo "local1.*	/var/log/keepalived" > /etc/rsyslog.d/49-keepalived.conf
+echo "& ~" >> /etc/rsyslog.d/49-keepalived.conf
+
+log "${0}: restart rsyslog"
+service rsyslog restart
+
+log "${0}: copy configuration"
+cp /var/vcap/jobs/haproxy/config/keepalived.conf /etc/keepalived
+
+if ! grep -q 'net.ipv4.ip_nonlocal_bind=1' /etc/sysctl.conf
+then
+  log "${0}: enable nonlocal bind"
+  echo 'net.ipv4.ip_nonlocal_bind=1' >> /etc/sysctl.conf
+  sysctl -p
+fi
+
+log "${0}: done"
+

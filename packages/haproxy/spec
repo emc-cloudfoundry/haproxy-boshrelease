@@ -1,0 +1,5 @@
+---
+name: haproxy
+files:
+- haproxy/haproxy_1.4.24-2_amd64.deb
+

@@ -1,0 +1,12 @@
+check process keepalived
+  with pidfile /var/run/keepalived.pid
+  start program "/var/vcap/jobs/haproxy/bin/monit_debugger keepalived_ctl '/var/vcap/jobs/haproxy/bin/keepalived_ctl start'"
+  stop program "/var/vcap/jobs/haproxy/bin/monit_debugger keepalived_ctl '/var/vcap/jobs/haproxy/bin/keepalived_ctl stop'"
+  group vcap
+
+check process haproxy
+  with pidfile /var/run/haproxy.pid
+  start program "/var/vcap/jobs/haproxy/bin/monit_debugger haproxy_ctl '/var/vcap/jobs/haproxy/bin/haproxy_ctl start'"
+  stop program "/var/vcap/jobs/haproxy/bin/monit_debugger haproxy_ctl '/var/vcap/jobs/haproxy/bin/haproxy_ctl stop'"
+  depends on keepalived
+  group vcap

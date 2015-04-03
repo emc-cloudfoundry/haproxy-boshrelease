@@ -1,0 +1,23 @@
+#!/bin/bash
+
+log() {
+  echo "$(date) ${*}"
+}
+
+log "${0}: install packages"
+export PKG_LOC=/var/vcap/packages/haproxy
+sudo dpkg -i ${PKG_LOC}/*.deb
+
+if [ -f /etc/rsyslog.d/haproxy.conf ]
+then
+  log "${0}: fixup rsyslog config file name for haproxy"
+  mv /etc/rsyslog.d/haproxy.conf /etc/rsyslog.d/49-haproxy.conf
+  log "${0}: restart rsyslog"
+  service rsyslog restart
+fi
+
+log "${0}: copy configuration"
+cp /var/vcap/jobs/haproxy/config/haproxy.cfg /etc/haproxy
+
+log "${0}: done"
+

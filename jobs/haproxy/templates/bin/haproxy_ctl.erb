@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+log() {
+  echo "$(date) ${*}"
+}
+
+# Setup env vars and folders for the webapp_ctl script
+source /var/vcap/jobs/haproxy/helpers/ctl_setup.sh 'haproxy'
+
+exec >> ${LOG_DIR}/${0##*/}.log
+exec 2>&1
+
+case $1 in
+
+  start)
+    log "${0}: setup for haproxy"
+    /var/vcap/jobs/haproxy/bin/haproxy_setup.sh
+
+    log "${0}: enable haproxy"
+    sed -i -e "s/^ENABLED=0/ENABLED=1/" /etc/default/haproxy
+
+    log "${0}: start haproxy"
+    /etc/init.d/haproxy start
+    ;;
+
+  stop)
+    log "${0}: stop haproxy"
+    /etc/init.d/haproxy stop
+
+    log "${0}: disable haproxy"
+    sed -i -e "s/^ENABLED=1/ENABLED=0/" /etc/default/haproxy
+    ;;
+
+  *)
+    log "${0}: Usage: haproxy_ctl {start|stop}"
+    ;;
+
+esac
+exit 0

@@ -1,0 +1,78 @@
+--- 
+name: emc-haproxy
+director_uuid: 4d574749-0e54-473e-8073-50934bfea6c2
+
+release: 
+  name: emc-haproxy
+  version: latest
+
+compilation: 
+  workers: 1
+  cloud_properties:
+      cpu: 1
+      disk: 18192
+      ram: 4096
+  network: default
+  reuse_compilation_vms: true
+
+networks:
+  - name: default
+    subnets:
+    - reserved:
+      - 10.8.0.2 - 10.8.9.59
+      - 10.8.9.70 - 10.8.9.73
+      - 10.8.9.80 - 10.8.15.254
+      static:
+      - 10.8.9.60 - 10.8.9.69
+      range: 10.8.0.0/20
+      gateway: 10.8.0.1
+      dns:
+      - 10.8.0.13
+      - 10.8.0.14
+      cloud_properties:
+       name : Lab Network
+
+update: 
+  canary_watch_time: 30000 - 600000
+  update_watch_time: 30000 - 600000
+  max_in_flight: 1
+  max_errors: 1
+  canaries: 1
+
+resource_pools:
+- name: medium
+  network: default
+  stemcell:
+    name: bosh-vsphere-esxi-ubuntu-trusty-go_agent-hardened
+    version: 2732-1
+  cloud_properties:
+    cpu: 2
+    ram: 2048
+    disk: 5192
+
+jobs: 
+- name: haproxy
+  templates: 
+  - name: haproxy
+    release: emc-haproxy
+  instances: 2
+  resource_pool: medium
+  networks: 
+  - name: default
+    static_ips:
+    - 10.8.9.61
+    - 10.8.9.62
+
+properties:
+  keepalived:
+    virtual_router_id: 60
+    virtual_ip_address: 10.8.9.60
+    master_priority: 100
+
+  haproxy:
+    port: 8080
+    service_name: "swift_proxy"
+    service_ip_addresses:
+    - 10.8.9.63
+    - 10.8.9.64
+    service_port: 8080

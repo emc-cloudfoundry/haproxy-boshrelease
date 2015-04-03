@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+log() {
+  echo "$(date) ${*}"
+}
+
+# Setup env vars and folders for the webapp_ctl script
+source /var/vcap/jobs/haproxy/helpers/ctl_setup.sh 'haproxy'
+
+exec >> ${LOG_DIR}/${0##*/}.log
+exec 2>&1
+
+case $1 in
+
+  start)
+    log "${0}: setup for keepalived"
+    source /var/vcap/jobs/haproxy/bin/keepalived_setup.sh
+
+    log "${0}: start keepalived"
+    /etc/init.d/keepalived start
+    ;;
+
+  stop)
+    log "${0}: stop keepalived"
+    /etc/init.d/keepalived stop
+    ;;
+
+  *)
+    log "${0}: Usage: keepalived_ctl {start|stop}"
+    ;;
+
+esac
+exit 0
